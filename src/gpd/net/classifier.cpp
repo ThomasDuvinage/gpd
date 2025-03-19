@@ -43,8 +43,8 @@
 namespace gpd {
 namespace net {
 
-std::shared_ptr<Classifier> Classifier::create(const std::string &model_file,
-                                               const std::string &weights_file,
+std::shared_ptr<Classifier> Classifier::create(const std::filesystem::path &model_file,
+                                               const std::filesystem::path &weights_file,
                                                Classifier::Device device,
                                                int batch_size) {
 #if defined(USE_OPENVINO)
@@ -56,8 +56,7 @@ std::shared_ptr<Classifier> Classifier::create(const std::string &model_file,
 #elif defined(USE_OPENCV)
   return std::make_shared<OpenCvClassifier>(model_file, weights_file, device);
 #else
-  return std::make_shared<EigenClassifier>(model_file, weights_file, device,
-                                           batch_size);
+  return std::make_shared<EigenClassifier>(weights_file, device, batch_size);
 #endif
 }
 
