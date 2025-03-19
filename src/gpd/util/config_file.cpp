@@ -73,44 +73,40 @@ void ConfigFile::parseLine(const std::string &line, size_t const lineNo) {
   extractContents(line);
 }
 
-bool ConfigFile::ExtractKeys() {
-  std::ifstream file;
-  file.open(fName.c_str());
-  if (!file) {
-    std::cout << "Config file " + fName + " could not be found!\n";
-    return false;
-  }
-
-  std::string line;
-  size_t lineNo = 0;
-  while (std::getline(file, line)) {
-    lineNo++;
-    std::string temp = line;
-
-    if (temp.empty()) {
-      continue;
+ConfigFile::ConfigFile(const std::string &fName) {
+    std::ifstream file;
+    file.open(fName.c_str());
+    if (!file) {
+        throw std::runtime_error("Config file '" + fName + "' could not be found!");
     }
 
-    removeComment(temp);
-    if (onlyWhitespace(temp)) {
-      continue;
+    std::string line;
+    size_t lineNo = 0;
+    while (std::getline(file, line)) {
+        lineNo++;
+        std::string temp = line;
+
+        if (temp.empty()) {
+            continue;
+        }
+
+        removeComment(temp);
+        if (onlyWhitespace(temp)) {
+            continue;
+        }
+
+        parseLine(temp, lineNo);
     }
 
-    parseLine(temp, lineNo);
-  }
-
-  file.close();
-  return true;
+    file.close();
 }
-
-ConfigFile::ConfigFile(const std::string &fName) { this->fName = fName; }
 
 bool ConfigFile::keyExists(const std::string &key) const {
   return contents.find(key) != contents.end();
 }
 
 std::string ConfigFile::getValueOfKeyAsString(const std::string &key,
-                                              const std::string &defaultValue) {
+                                              const std::string &defaultValue) const {
   if (!keyExists(key)) {
     return defaultValue;
   }
@@ -119,7 +115,7 @@ std::string ConfigFile::getValueOfKeyAsString(const std::string &key,
 }
 
 std::vector<double> ConfigFile::getValueOfKeyAsStdVectorDouble(
-    const std::string &key, const std::string &defaultValue) {
+    const std::string &key, const std::string &defaultValue) const {
   std::string s = getValueOfKeyAsString(key, defaultValue);
 
   std::vector<double> vec = stringToDouble(s);
@@ -128,7 +124,7 @@ std::vector<double> ConfigFile::getValueOfKeyAsStdVectorDouble(
 }
 
 std::vector<int> ConfigFile::getValueOfKeyAsStdVectorInt(
-    const std::string &key, const std::string &defaultValue) {
+    const std::string &key, const std::string &defaultValue) const {
   std::string s = getValueOfKeyAsString(key, defaultValue);
 
   std::vector<int> vec = stringToInt(s);
@@ -136,7 +132,7 @@ std::vector<int> ConfigFile::getValueOfKeyAsStdVectorInt(
   return vec;
 }
 
-std::vector<double> ConfigFile::stringToDouble(const std::string &str) {
+std::vector<double> ConfigFile::stringToDouble(const std::string &str) const {
   std::vector<double> values;
   std::stringstream ss(str);
   double v;
@@ -151,7 +147,7 @@ std::vector<double> ConfigFile::stringToDouble(const std::string &str) {
   return values;
 }
 
-std::vector<int> ConfigFile::stringToInt(const std::string &str) {
+std::vector<int> ConfigFile::stringToInt(const std::string &str) const {
   std::vector<int> values;
   std::stringstream ss(str);
   double v;

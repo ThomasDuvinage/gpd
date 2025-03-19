@@ -2,20 +2,13 @@
 
 namespace gpd {
 
-GraspDetector::GraspDetector(const std::string &config_filename) {
+GraspDetector::GraspDetector(const util::ConfigFile &config_file) {
   Eigen::initParallel();
-
-  // Read parameters from configuration file.
-  util::ConfigFile config_file(config_filename);
-  config_file.ExtractKeys();
 
   // Read hand geometry parameters.
   std::string hand_geometry_filename =
       config_file.getValueOfKeyAsString("hand_geometry_filename", "");
-  if (hand_geometry_filename == "0") {
-    hand_geometry_filename = config_filename;
-  }
-  candidate::HandGeometry hand_geom(hand_geometry_filename);
+  candidate::HandGeometry hand_geom((hand_geometry_filename == "0") ? config_file : hand_geometry_filename);
   std::cout << hand_geom;
 
   // Read plotting parameters.
@@ -120,10 +113,7 @@ GraspDetector::GraspDetector(const std::string &config_filename) {
   // Read grasp image parameters.
   std::string image_geometry_filename =
       config_file.getValueOfKeyAsString("image_geometry_filename", "");
-  if (image_geometry_filename == "0") {
-    image_geometry_filename = config_filename;
-  }
-  descriptor::ImageGeometry image_geom(image_geometry_filename);
+  descriptor::ImageGeometry image_geom((image_geometry_filename == "0") ? config_file : image_geometry_filename);
   std::cout << image_geom;
 
   // Read classification parameters and create classifier.

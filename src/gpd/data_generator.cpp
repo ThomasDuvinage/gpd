@@ -12,7 +12,6 @@ DataGenerator::DataGenerator(const std::string &config_filename) {
 
   // Read parameters from configuration file.
   util::ConfigFile config_file(config_filename);
-  config_file.ExtractKeys();
   data_root_ = config_file.getValueOfKeyAsString("data_root", "");
   objects_file_location_ =
       config_file.getValueOfKeyAsString("objects_file_location", "");
