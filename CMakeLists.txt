@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
 
+include(GNUInstallDirs)
+
 # Eigen library
 include_directories(${EIGEN3_INCLUDE_DIR})
 
@@ -303,3 +305,60 @@ set_target_properties(${PROJECT_NAME}_grasp_detector
 install(TARGETS ${PROJECT_NAME}_grasp_detector DESTINATION lib)
 
 install(DIRECTORY include/gpd DESTINATION include)
+
+
+# export libraries and headers
+target_include_directories(${PROJECT_NAME}_grasp_detector PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_INSTALL_INCLUDEDIR}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+install(
+  TARGETS
+    ${PROJECT_NAME}_antipodal
+    ${PROJECT_NAME}_candidates_generator
+    ${PROJECT_NAME}_classifier
+    ${PROJECT_NAME}_cloud
+    ${PROJECT_NAME}_clustering
+    ${PROJECT_NAME}_config_file
+    ${PROJECT_NAME}_conv_layer
+    ${PROJECT_NAME}_dense_layer
+    ${PROJECT_NAME}_eigen_utils
+    ${PROJECT_NAME}_finger_hand
+    ${PROJECT_NAME}_frame_estimator
+    ${PROJECT_NAME}_grasp_detector
+    ${PROJECT_NAME}_hand
+    ${PROJECT_NAME}_hand_geometry
+    ${PROJECT_NAME}_hand_search
+    ${PROJECT_NAME}_hand_set
+    ${PROJECT_NAME}_image_1_channels_strategy
+    ${PROJECT_NAME}_image_12_channels_strategy
+    ${PROJECT_NAME}_image_15_channels_strategy
+    ${PROJECT_NAME}_image_3_channels_strategy
+    ${PROJECT_NAME}_image_generator
+    ${PROJECT_NAME}_image_geometry
+    ${PROJECT_NAME}_image_strategy
+    ${PROJECT_NAME}_local_frame
+    ${PROJECT_NAME}_plot
+    ${PROJECT_NAME}_point_list
+  EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION share/${PROJECT_NAME}/cmake
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    DESTINATION share/${PROJECT_NAME}/cmake
+)
+
+install(EXPORT ${PROJECT_NAME}Targets
+    DESTINATION share/${PROJECT_NAME}/cmake
+    FILE ${PROJECT_NAME}Targets.cmake
+)
