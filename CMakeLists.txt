@@ -8,18 +8,13 @@ set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
 include(GNUInstallDirs)
 
 # Eigen library
-include_directories(${EIGEN3_INCLUDE_DIR})
+find_package(Eigen3 REQUIRED NO_MODULE)
 
 # PCL
-find_package(PCL 1.9 REQUIRED)
-#find_package(PCL 1.8 REQUIRED)
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
+find_package(PCL REQUIRED COMPONENTS features segmentation visualization)
 
 # OpenCV
-find_package(OpenCV REQUIRED)
-#find_package(OpenCV REQUIRED PATHS /usr/local NO_DEFAULT_PATH)
+find_package(OpenCV REQUIRED COMPONENTS core highgui)
 
 ## Set compiler optimization flags
 # set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14")
@@ -33,7 +28,7 @@ find_package(OpenCV REQUIRED)
 set(CMAKE_CXX_FLAGS "-O3 -march=native -mtune=intel -msse4.2 -mavx2 -mfma -flto -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
 
 ## Specify additional locations of header files
-include_directories(include ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+include_directories(include)
 
 # Classifier depends on what libraries are installed.
 option(USE_OPENVINO "use classifier based on OpenVINO toolkit" OFF)
@@ -67,9 +62,11 @@ elseif(USE_OPENCV STREQUAL "ON")
   message(FATAL_ERROR "Not supported yet")
 else()
   add_library(${PROJECT_NAME}_conv_layer src/${PROJECT_NAME}/net/conv_layer.cpp)
+  target_link_libraries(${PROJECT_NAME}_conv_layer Eigen3::Eigen)
   add_library(${PROJECT_NAME}_dense_layer src/${PROJECT_NAME}/net/dense_layer.cpp)
+  target_link_libraries(${PROJECT_NAME}_dense_layer Eigen3::Eigen)
   set(classifier_src src/${PROJECT_NAME}/net/classifier.cpp src/${PROJECT_NAME}/net/eigen_classifier.cpp)
-  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer ${OpenCV_LIBRARIES})
+  set(classifier_dep ${PROJECT_NAME}_conv_layer ${PROJECT_NAME}_dense_layer opencv_core)
 endif()
 
 # Optional PCL GPU operations
@@ -87,14 +84,16 @@ endif()
 # Optional data generation (requires OpenCV Contrib)
 option(BUILD_DATA_GENERATION "build data generation (requires OpenCV Contrib for HDF5)" OFF)
 if(BUILD_DATA_GENERATION STREQUAL "ON")
+  find_package(OpenCV REQUIRED COMPONENTS hdf)
   add_library(${PROJECT_NAME}_data_generator src/${PROJECT_NAME}/data_generator.cpp)
   target_link_libraries(${PROJECT_NAME}_data_generator
-   ${PROJECT_NAME}_grasp_detector
-   ${PCL_LIBRARIES}
-   ${OpenCV_LIBS})
+    ${PROJECT_NAME}_grasp_detector
+    opencv_hdf
+  )
   add_executable(${PROJECT_NAME}_generate_data src/generate_data.cpp)
   target_link_libraries(${PROJECT_NAME}_generate_data
-   ${PROJECT_NAME}_data_generator)
+    ${PROJECT_NAME}_data_generator
+  )
   message("Building data generation module")
 endif()
 
@@ -118,6 +117,8 @@ add_library(${PROJECT_NAME}_hand_set src/${PROJECT_NAME}/candidate/hand_set.cpp)
 add_library(${PROJECT_NAME}_hand_geometry src/${PROJECT_NAME}/candidate/hand_geometry.cpp)
 add_library(${PROJECT_NAME}_hand_search src/${PROJECT_NAME}/candidate/hand_search.cpp)
 add_library(${PROJECT_NAME}_local_frame src/${PROJECT_NAME}/candidate/local_frame.cpp)
+target_link_libraries(${PROJECT_NAME}_finger_hand Eigen3::Eigen3)
+target_link_libraries(${PROJECT_NAME}_local_frame Eigen3::Eigen3)
 
 # namespace util
 add_library(${PROJECT_NAME}_cloud src/${PROJECT_NAME}/util/cloud.cpp)
@@ -148,7 +149,8 @@ add_executable(${PROJECT_NAME}_test_grasp_image src/tests/test_grasp_image.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_clustering
-${PROJECT_NAME}_hand)
+  ${PROJECT_NAME}_hand
+)
 
 target_link_libraries(${PROJECT_NAME}_grasp_detector
   ${PROJECT_NAME}_clustering
@@ -158,29 +160,38 @@ target_link_libraries(${PROJECT_NAME}_grasp_detector
   ${PROJECT_NAME}_hand_geometry
   ${PROJECT_NAME}_hand_set
   ${PROJECT_NAME}_config_file
-  ${PROJECT_NAME}_plot)
+  ${PROJECT_NAME}_plot
+)
 
 target_link_libraries(${PROJECT_NAME}_generate_candidates
   ${PROJECT_NAME}_config_file
-${PROJECT_NAME}_candidates_generator)
+  ${PROJECT_NAME}_candidates_generator
+)
 
 # Linking for libraries
 target_link_libraries(${PROJECT_NAME}_antipodal
-${PROJECT_NAME}_point_list)
+  ${PROJECT_NAME}_point_list
+)
 
 target_link_libraries(${PROJECT_NAME}_cloud
   ${PROJECT_NAME}_eigen_utils
-  ${PCL_LIBRARIES})
+  pcl_features
+  pcl_segmentation
+  pcl_io
+)
 
 target_link_libraries(${PROJECT_NAME}_eigen_utils
-${EIGEN_LIBRARIES})
+  Eigen3::Eigen
+)
 
 target_link_libraries(${PROJECT_NAME}_frame_estimator
   ${PROJECT_NAME}_cloud
-${PROJECT_NAME}_local_frame)
+  ${PROJECT_NAME}_local_frame
+)
 
 target_link_libraries(${PROJECT_NAME}_hand
-${PROJECT_NAME}_finger_hand)
+  ${PROJECT_NAME}_finger_hand
+)
 
 target_link_libraries(${PROJECT_NAME}_hand_set
   ${PROJECT_NAME}_antipodal
@@ -188,10 +199,12 @@ target_link_libraries(${PROJECT_NAME}_hand_set
   ${PROJECT_NAME}_hand
   ${PROJECT_NAME}_hand_geometry
   ${PROJECT_NAME}_local_frame
-${PROJECT_NAME}_point_list)
+  ${PROJECT_NAME}_point_list
+)
 
 target_link_libraries(${PROJECT_NAME}_hand_geometry
-${PROJECT_NAME}_config_file)
+  ${PROJECT_NAME}_config_file
+)
 
 target_link_libraries(${PROJECT_NAME}_hand_search
   ${PROJECT_NAME}_antipodal
@@ -199,21 +212,26 @@ target_link_libraries(${PROJECT_NAME}_hand_search
   ${PROJECT_NAME}_frame_estimator
   ${PROJECT_NAME}_hand_set
   ${PROJECT_NAME}_hand_geometry
-  ${PROJECT_NAME}_plot)
+  ${PROJECT_NAME}_plot
+)
 
 target_link_libraries(${PROJECT_NAME}_plot
   ${PROJECT_NAME}_cloud
   ${PROJECT_NAME}_hand_set
   ${PROJECT_NAME}_image_geometry
-${PROJECT_NAME}_local_frame)
+  ${PROJECT_NAME}_local_frame
+  pcl_visualization
+)
 
 target_link_libraries(${PROJECT_NAME}_candidates_generator
   ${PROJECT_NAME}_config_file
   ${PROJECT_NAME}_hand_geometry
-${PROJECT_NAME}_hand_search)
+  ${PROJECT_NAME}_hand_search
+)
 
 target_link_libraries(${PROJECT_NAME}_point_list
-${PROJECT_NAME}_eigen_utils)
+  ${PROJECT_NAME}_eigen_utils
+)
 
 target_link_libraries(${PROJECT_NAME}_image_strategy
   ${PROJECT_NAME}_image_geometry
@@ -222,59 +240,69 @@ target_link_libraries(${PROJECT_NAME}_image_strategy
   ${PROJECT_NAME}_image_12_channels_strategy
   ${PROJECT_NAME}_image_15_channels_strategy
   ${PROJECT_NAME}_hand_set
-${OpenCV_LIBS})
+  opencv_core
+)
 
 
 target_link_libraries(${PROJECT_NAME}_image_1_channels_strategy
-${PROJECT_NAME}_image_strategy)
+  ${PROJECT_NAME}_image_strategy
+)
 
 target_link_libraries(${PROJECT_NAME}_image_3_channels_strategy
-${PROJECT_NAME}_image_strategy)
+  ${PROJECT_NAME}_image_strategy
+)
 
 target_link_libraries(${PROJECT_NAME}_image_12_channels_strategy
-${PROJECT_NAME}_image_strategy)
+  ${PROJECT_NAME}_image_strategy
+)
 
 target_link_libraries(${PROJECT_NAME}_image_15_channels_strategy
-${PROJECT_NAME}_image_strategy)
+  ${PROJECT_NAME}_image_strategy
+  opencv_highgui
+)
 
 target_link_libraries(${PROJECT_NAME}_image_geometry
-${PROJECT_NAME}_config_file)
+  ${PROJECT_NAME}_config_file
+)
 
 target_link_libraries(${PROJECT_NAME}_image_generator
   ${PROJECT_NAME}_image_strategy
   ${PROJECT_NAME}_hand_set
   ${PROJECT_NAME}_image_strategy
   ${PROJECT_NAME}_cloud
-${PROJECT_NAME}_eigen_utils)
+  ${PROJECT_NAME}_eigen_utils
+)
 
 target_link_libraries(${PROJECT_NAME}_sequential_importance_sampling
-  ${PROJECT_NAME}_grasp_detector)
+  ${PROJECT_NAME}_grasp_detector
+)
 
 target_link_libraries(${PROJECT_NAME}_test_grasp_image
   ${PROJECT_NAME}_image_generator
   ${PROJECT_NAME}_classifier
   ${PROJECT_NAME}_plot
   ${PROJECT_NAME}_candidates_generator
-${PCL_LIBRARIES})
+)
 
 target_link_libraries(${PROJECT_NAME}_detect_grasps
   ${PROJECT_NAME}_grasp_detector
   ${PROJECT_NAME}_config_file
-${PCL_LIBRARIES})
+)
 
 target_link_libraries(${PROJECT_NAME}_label_grasps
   ${PROJECT_NAME}_grasp_detector
   ${PROJECT_NAME}_config_file
-${PCL_LIBRARIES})
+)
 
 target_link_libraries(${PROJECT_NAME}_cem_detect_grasps
   ${PROJECT_NAME}_sequential_importance_sampling
   ${PROJECT_NAME}_config_file
-  ${PCL_LIBRARIES})
+)
 
 target_link_libraries(${PROJECT_NAME}_image_generator
   ${PROJECT_NAME}_hand_set
-  ${PROJECT_NAME}_image_strategy)
+  ${PROJECT_NAME}_image_strategy
+)
 
 # Rename targets to simplify their names.
 set_target_properties(${PROJECT_NAME}_test_grasp_image
