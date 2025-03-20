@@ -137,25 +137,32 @@ class ConfigFile {
   }
 
  private:
-  void removeComment(std::string &line) const;
+  static
+  void removeComment(std::string &line);
 
-  bool onlyWhitespace(const std::string &line) const;
+  static
+  bool onlyWhitespace(const std::string &line);
 
-  bool validLine(const std::string &line) const;
+  static
+  bool validLine(const std::string &line);
 
+  static
   void extractKey(std::string &key, size_t const &sepPos,
-                  const std::string &line) const;
+                  const std::string &line);
 
+  static
   void extractValue(std::string &value, size_t const &sepPos,
-                    const std::string &line) const;
+                    const std::string &line);
 
   void extractContents(const std::string &line);
 
   void parseLine(const std::string &line, size_t const lineNo);
 
-  std::vector<double> stringToDouble(const std::string &str) const;
+  static
+  std::vector<double> stringToDouble(const std::string &str);
 
-  std::vector<int> stringToInt(const std::string &str) const;
+  static
+  std::vector<int> stringToInt(const std::string &str);
 
   std::map<std::string, std::string> contents;
 };

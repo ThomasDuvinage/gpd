@@ -3,17 +3,17 @@
 namespace gpd {
 namespace util {
 
-void ConfigFile::removeComment(std::string &line) const {
+void ConfigFile::removeComment(std::string &line) {
   if (line.find('#') != line.npos) {
     line.erase(line.find('#'));
   }
 }
 
-bool ConfigFile::onlyWhitespace(const std::string &line) const {
+bool ConfigFile::onlyWhitespace(const std::string &line) {
   return (line.find_first_not_of(' ') == line.npos);
 }
 
-bool ConfigFile::validLine(const std::string &line) const {
+bool ConfigFile::validLine(const std::string &line) {
   std::string temp = line;
   temp.erase(0, temp.find_first_not_of("\t "));
   if (temp[0] == '=') {
@@ -30,7 +30,7 @@ bool ConfigFile::validLine(const std::string &line) const {
 }
 
 void ConfigFile::extractKey(std::string &key, size_t const &sepPos,
-                            const std::string &line) const {
+                            const std::string &line) {
   key = line.substr(0, sepPos);
   if (key.find('\t') != line.npos || key.find(' ') != line.npos) {
     key.erase(key.find_first_of("\t "));
@@ -38,7 +38,7 @@ void ConfigFile::extractKey(std::string &key, size_t const &sepPos,
 }
 
 void ConfigFile::extractValue(std::string &value, size_t const &sepPos,
-                              const std::string &line) const {
+                              const std::string &line) {
   value = line.substr(sepPos + 1);
   value.erase(0, value.find_first_not_of("\t "));
   value.erase(value.find_last_not_of("\t ") + 1);
@@ -132,7 +132,7 @@ std::vector<int> ConfigFile::getValueOfKeyAsStdVectorInt(
   return vec;
 }
 
-std::vector<double> ConfigFile::stringToDouble(const std::string &str) const {
+std::vector<double> ConfigFile::stringToDouble(const std::string &str) {
   std::vector<double> values;
   std::stringstream ss(str);
   double v;
@@ -147,7 +147,7 @@ std::vector<double> ConfigFile::stringToDouble(const std::string &str) const {
   return values;
 }
 
-std::vector<int> ConfigFile::stringToInt(const std::string &str) const {
+std::vector<int> ConfigFile::stringToInt(const std::string &str) {
   std::vector<int> values;
   std::stringstream ss(str);
   double v;
