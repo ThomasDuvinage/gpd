@@ -7,6 +7,8 @@ set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
 
 include(GNUInstallDirs)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Eigen library
 find_package(Eigen3 REQUIRED NO_MODULE)
 
@@ -16,16 +18,8 @@ find_package(PCL REQUIRED COMPONENTS features segmentation visualization)
 # OpenCV
 find_package(OpenCV REQUIRED COMPONENTS core highgui)
 
-## Set compiler optimization flags
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -std=c++14")
-#set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
-#set(CMAKE_CXX_FLAGS "-fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare")
-# set(CMAKE_CXX_FLAGS "-O3 -fopenmp -march=native -mfpmath=sse -funroll-loops -fPIC -Wno-deprecated -Wenum-compare") # no improvement
-# set(CMAKE_CXX_FLAGS "-frename-registers -Ofast -march=native -fopenmp -fPIC -Wno-deprecated -Wenum-compare") # no improvement
-
-#set(CMAKE_CXX_FLAGS "-fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
-set(CMAKE_CXX_FLAGS "-O3 -march=native -mtune=intel -msse4.2 -mavx2 -mfma -flto -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
+# OpenMP
+find_package(OpenMP REQUIRED)
 
 ## Specify additional locations of header files
 include_directories(include)
@@ -213,6 +207,7 @@ target_link_libraries(${PROJECT_NAME}_hand_search
   ${PROJECT_NAME}_hand_set
   ${PROJECT_NAME}_hand_geometry
   ${PROJECT_NAME}_plot
+  OpenMP::OpenMP_CXX
 )
 
 target_link_libraries(${PROJECT_NAME}_plot

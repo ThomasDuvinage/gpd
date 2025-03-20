@@ -6,6 +6,7 @@
 #include <pcl/segmentation/sac_segmentation.h>
 
 #include <random>
+#include <omp.h>
 
 namespace gpd {
 namespace util {
