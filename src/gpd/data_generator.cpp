@@ -99,6 +99,9 @@ void DataGenerator::generateData() {
   int train_offset = 0;
   int test_offset = 0;
 
+  std::random_device rd;
+  std::mt19937 g(rd());
+
   util::Plot plotter(1, 8);
 
   for (int i = 0; i < num_objects; i++) {
@@ -215,8 +218,8 @@ void DataGenerator::generateData() {
 
     if ((i + 1) % store_step == 0) {
       // Shuffle the data.
-      std::random_shuffle(train_data.begin(), train_data.end());
-      std::random_shuffle(test_data.begin(), test_data.end());
+      std::shuffle(train_data.begin(), train_data.end(), g);
+      std::shuffle(test_data.begin(), test_data.end(), g);
       train_offset = insertIntoHDF5(train_file_path, train_data, train_offset);
       test_offset = insertIntoHDF5(test_file_path, test_data, test_offset);
       printf("train_offset: %d, test_offset: %d\n", train_offset, test_offset);
@@ -251,8 +254,8 @@ void DataGenerator::generateData() {
     printf("Storing remaining instances ...\n");
 
     // Shuffle the data.
-    std::random_shuffle(train_data.begin(), train_data.end());
-    std::random_shuffle(test_data.begin(), test_data.end());
+    std::shuffle(train_data.begin(), train_data.end(), g);
+    std::shuffle(test_data.begin(), test_data.end(), g);
     train_offset = insertIntoHDF5(train_file_path, train_data, train_offset);
     test_offset = insertIntoHDF5(test_file_path, test_data, test_offset);
     printf("train_offset: %d, test_offset: %d\n", train_offset, test_offset);
