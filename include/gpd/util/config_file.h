@@ -136,6 +136,9 @@ class ConfigFile {
     return returnVal;
   }
 
+  std::string&
+  operator[](std::string&& key);
+
  private:
   static
   void removeComment(std::string &line);

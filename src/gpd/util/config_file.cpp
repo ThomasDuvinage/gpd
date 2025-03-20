@@ -162,5 +162,10 @@ std::vector<int> ConfigFile::stringToInt(const std::string &str) {
   return values;
 }
 
+std::string&
+ConfigFile::operator[](std::string&& k) {
+  return contents[k];
+}
+
 }  // namespace util
 }  // namespace gpd
